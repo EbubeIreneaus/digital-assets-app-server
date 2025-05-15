@@ -1,9 +1,13 @@
 from django.contrib import admin
-from .models import CryptoChannel
+from .models import CryptoChannel, InvestmentPlan
 
 # Register your models here.
 class ChannelAdmin(admin.ModelAdmin):
-    class Meta:
-        fields = ['name']
+    list_display = ['name']
         
 admin.site.register(CryptoChannel, ChannelAdmin)
+
+class InvestPlanAdmin(admin.ModelAdmin):
+    list_display= ['label', 'roi']
+    
+admin.site.register(InvestmentPlan, InvestPlanAdmin)

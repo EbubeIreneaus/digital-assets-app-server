@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-*a*g)huco!p@5@&by_+q3rw7z^@2amk&mx0zb(3@=rm87tj)qp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.248.110', 'localhost', '127.0.0.1', '.digitalassets.com.ng']
+ALLOWED_HOSTS = ['192.168.222.110', 'localhost', '127.0.0.1', '.digitalassets.com.ng']
 
 
 # Application definition
@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'authentication',
     'account',
     'transaction',
-    'administration'
+    'administration',
+    'investment'
 ]
 
 MIDDLEWARE = [

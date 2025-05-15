@@ -32,6 +32,7 @@ api.add_router('auth/', AuthRouter, auth=None)
 api.add_router('admin/', 'administration.api.router', auth=None)
 api.add_router('transaction/', 'transaction.api.router')
 api.add_router('account/', 'account.api.router')
+api.add_router('investment/', 'investment.api.router')
 
 @api.get('/db-data', response={200: DashboardDataSchema, 500: ErrorOut})
 def get_dashboard_data(request):
