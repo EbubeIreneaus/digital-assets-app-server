@@ -4,7 +4,7 @@ from authentication.models import CustomUser
 
 # Create your models here.
 class Investment(models.Model):
-    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE, related_name='investments')
     plan = models.ForeignKey(InvestmentPlan, on_delete=models.CASCADE)
     amount = models.DecimalField(default=0.0, max_digits=8, decimal_places=2)
     next_roi_date = models.DateTimeField(null=True, blank=True)
