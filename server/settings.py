@@ -17,6 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
 
 
@@ -24,12 +25,12 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*a*g)huco!p@5@&by_+q3rw7z^@2amk&mx0zb(3@=rm87tj)qp'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.222.110', 'localhost', '127.0.0.1', '.digitalassets.com.ng']
+ALLOWED_HOSTS = ['192.168.236.110',  '127.0.0.1', '.digitalassetsweb.com']
 
 
 # Application definition
@@ -46,7 +47,8 @@ INSTALLED_APPS = [
     'account',
     'transaction',
     'administration',
-    'investment'
+    'investment',
+    'booking',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
+    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'server.urls'
@@ -83,19 +86,26 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME'),
-        'PASSWORD': os.getenv('DB_PASS'),
         'USER': os.getenv('DB_USER'),
-        'HOST': 'localhost'
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': 3306,
+         'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.digitalassets.com.ng'
+EMAIL_HOST = 'mail.digitalassetsweb.com'
 EMAIL_PORT = 465
+EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.getenv('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
 EMAIL_USE_SSL = True
@@ -138,8 +148,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL= '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

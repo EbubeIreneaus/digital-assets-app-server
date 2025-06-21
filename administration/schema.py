@@ -5,7 +5,7 @@ from .models import CryptoChannel
 class ChannelSchema(ModelSchema):
     class Meta:
         model = CryptoChannel
-        fields = ['name']
+        fields = ['id', 'name', 'network']
         
 class ChannelSchemaOut(Schema):
     success: bool

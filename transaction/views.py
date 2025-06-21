@@ -6,10 +6,10 @@ import string
 from django.conf import settings
 from django.shortcuts import render
 from django.core.mail import EmailMultiAlternatives, send_mail
-
+from django.conf import settings
 from administration.models import CryptoChannel
 from authentication.models import CustomUser
-from transaction.models import Transaction
+from .models import Transaction
 
 # Create your views here.
 
@@ -126,7 +126,7 @@ def sendDepositEmail(depositId: int):
 </html>"""
 
         try:
-            to = [deposit.user.email, 'service@digitalassets.com.ng']
+            to = [deposit.user.email, settings.DEFAULT_FROM_EMAIL]
             subject = 'Deposit Received – Awaiting Confirmation'
             body = f""
            
@@ -135,12 +135,237 @@ def sendDepositEmail(depositId: int):
                 html_message=msg,
                 fail_silently=False,
                 subject=subject,
-                from_email='Digital Assets<service@digitalassets.com.ng>',
+                from_email=f'Digital Assets<{settings.DEFAULT_FROM_EMAIL}>',
                 message=body
             )
-            print('verification email send')
+           
         except Exception as error:
             print('verification email failed: '+ str(error))
 
     except Exception as error:
          print('verification email failed on end: '+ str(error))
+
+def sendCreditAlert(instance):
+    msg = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Credit Alert – Deposit Successful</title>
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }}
+    .email-container {{
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      padding: 20px;
+      color: #1D3B53;
+    }}
+    .header {{
+      text-align: center;
+      padding-bottom: 20px;
+    }}
+    .header h2 {{
+      margin: 0;
+      color: #388E3C;
+    }}
+    .alert-box {{
+      background-color: #e8f5e9;
+      border-left: 6px solid #388E3C;
+      padding: 16px;
+      margin-bottom: 30px;
+    }}
+    .details-table {{
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }}
+    .details-table td {{
+      padding: 8px 0;
+    }}
+    .label {{
+      font-weight: bold;
+      color: #1D3B53;
+    }}
+    .footer {{
+      font-size: 14px;
+      text-align: center;
+      color: #777;
+      margin-top: 30px;
+    }}
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h2>Credit Alert</h2>
+      <p style="color: #555;">A deposit has been successfully credited to your account.</p>
+    </div>
+
+    <div class="alert-box">
+      <p><strong>${instance.amount:.2f}</strong> has been credited to your account.</p>
+    </div>
+
+    <table class="details-table">
+      <tr>
+        <td class="label">Transaction Type:</td>
+        <td>Deposit</td>
+      </tr>
+      <tr>
+        <td class="label">Date & Time:</td>
+        <td>{formatDate(instance.createdAt)}</td>
+      </tr>
+      <tr>
+        <td class="label">Deposit Channel:</td>
+        <td>Crypto Wallet ({instance.channel})</td>
+      </tr>
+      <tr>
+        <td class="label">Desc:</td>
+        <td>{instance.label}</td>
+      </tr>
+      <tr>
+        <td class="label">Transaction Status:</td>
+        <td><strong style="color: green;">Successful</strong></td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      <p>If you have any questions about this transaction, feel free to contact our support team.</p>
+      <p>Thank you for choosing our service.</p>
+    </div>
+  </div>
+</body>
+</html>
+"""
+    try:
+      to = [instance.user.email, settings.DEFAULT_FROM_EMAIL]
+      subject = "Credit Alert – Deposit Confirmed"
+      send_mail(
+        recipient_list=to,
+        html_message=msg,
+        fail_silently=False,
+        message=msg,
+        subject=subject,
+        from_email=settings.DEFAULT_FROM_EMAIL
+      )
+      print('email sent successfully')
+    except Exception as error:
+      print('Error sending credit alert email ',str(error))
+      
+      
+def sendDebitAlert(instance):
+    msg = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Debit Alert – Withdrawal Successful</title>
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }}
+    .email-container {{
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      padding: 20px;
+      color: #1D3B53;
+    }}
+    .header {{
+      text-align: center;
+      padding-bottom: 20px;
+    }}
+    .header h2 {{
+      margin: 0;
+      color: #D32F2F;
+    }}
+    .alert-box {{
+      background-color: #fff3f3;
+      border-left: 6px solid #D32F2F;
+      padding: 16px;
+      margin-bottom: 30px;
+    }}
+    .details-table {{
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }}
+    .details-table td {{
+      padding: 8px 0;
+    }}
+    .label {{
+      font-weight: bold;
+      color: #1D3B53;
+    }}
+    .footer {{
+      font-size: 14px;
+      text-align: center;
+      color: #777;
+      margin-top: 30px;
+    }}
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h2>Debit Alert</h2>
+      <p style="color: #555;">A withdrawal has been successfully processed from your account.</p>
+    </div>
+
+    <div class="alert-box">
+      <p><strong>${instance.amount:.2f}</strong> has been debited from your account.</p>
+    </div>
+
+    <table class="details-table">
+      <tr>
+        <td class="label">Transaction Type:</td>
+        <td>Withdrawal</td>
+      </tr>
+      <tr>
+        <td class="label">Date & Time:</td>
+        <td>{format(instance.createdAt)}</td>
+      </tr>
+      <tr>
+        <td class="label">Withdrawal Channel:</td>
+        <td>Crypto Wallet ({instance.channel} - {instance.network})</td>
+      </tr>
+      <tr>
+        <td class="label">Wallet Address:</td>
+        <td>{instance.wallet_address}</td>
+      </tr>
+      <tr>
+        <td class="label">Transaction Status:</td>
+        <td><strong style="color: green;">Successful</strong></td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      <p>If you did not initiate this transaction, please contact our support team immediately.</p>
+      <p>Thank you for using our service.</p>
+    </div>
+  </div>
+</body>
+</html>
+"""
+    try:
+      to = [instance.user.email, settings.DEFAULT_FROM_EMAIL]
+      subject = "Credit Alert – Deposit Confirmed"
+      send_mail(
+        recipient_list=to,
+        html_message=msg,
+        fail_silently=False,
+        message=msg,
+        subject=subject,
+        from_email=settings.DEFAULT_FROM_EMAIL
+      )
+      print('email sent successfully')
+    except Exception as error:
+      print('Error sending debit email ',str(error))

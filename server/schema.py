@@ -1,6 +1,7 @@
 from decimal import Decimal
-from typing import Optional
-from ninja import Schema
+from typing import List, Optional
+from ninja import Schema, ModelSchema
+from transaction.models import Transaction
 
 class ErrorOut(Schema):
     success: bool
@@ -11,17 +12,21 @@ class ResOut(Schema):
     
 class UserSchema(Schema):
     fullname: str
+    profile_pics: Optional[str] = None
     
 class Accountschema(Schema):
     balance: Decimal
     available_balance: Decimal
 
-class TransactionSchema(Schema):
-    type: str
-    amount: Decimal
+class TransactionSchema(ModelSchema):
+    class Meta:
+        model = Transaction
+        fields = ['type', 'label', 'amount', 'createdAt', 'id', 'status']
 
 class DashboardDataSchema(Schema):
     success: bool
     user: UserSchema
     account: Accountschema
+    liveChat: str
+    transactions: List[TransactionSchema]
     

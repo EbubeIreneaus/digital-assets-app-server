@@ -3,7 +3,7 @@ from ninja import Schema, ModelSchema
 from administration.models import InvestmentPlan
 from transaction.models import Transaction
 from account.models import Account
-from typing import List
+from typing import List, Literal
 
 class ErrorOut(Schema):
     success: bool
@@ -30,9 +30,9 @@ class TradingPlanOutSchema(Schema):
     plans: List[InvestPlanSchema]
     
 class MyPlanOut(Schema):
-    success: bool
+    success: bool = True
     plan: InvestPlanSchema
-    account: dict
+    balance: Decimal
     transactions: List[TransactionSchema]
 
 class GetPlansOut(Schema):
@@ -42,3 +42,13 @@ class GetPlansOut(Schema):
 class BuyPlanIn(Schema):
     planName: str
     amount: int
+
+class SellPlanIn(Schema):
+    plan: str
+    amount: int
+    to: Literal['balance', 'available_balance']
+
+class SwapPlanIn(Schema):
+    source: str
+    amount: int
+    destination: str

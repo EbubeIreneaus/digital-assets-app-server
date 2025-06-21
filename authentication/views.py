@@ -67,13 +67,14 @@ def sendVerificationEmail(email):
                 html_message=msg,
                 fail_silently=False,
                 subject=subject,
-                from_email='Digital Assets<service@digitalassets.com.ng>',
-                message=body
+                message=body,
+                from_email='Digital Assets<service@digitalassetsweb.com>',
             )
             user.save()
-            print('verification email send')
+            print('verification email sent to', to[0])
         except Exception as error:
             print('verification email failed: '+ str(error))
 
     except Exception as error:
          print('verification email failed on end: '+ str(error))
+
