@@ -99,7 +99,7 @@ def get_all_transactions(request, status: Optional[str] = 'all', category:Option
         if status != 'all':
             query &= Q(status__iexact=status)
 
-        transactions = Transaction.objects.filter(query)[offset : limit]
+        transactions = Transaction.objects.filter(query).order_by('-id')[offset : limit]
         return 200, {'success': True, 'transactions': transactions}
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}

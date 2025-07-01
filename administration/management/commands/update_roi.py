@@ -36,7 +36,9 @@ class Command(BaseCommand):
                     accumulated_roi_per_plan = {}
 
                     for investment in user.overdue_investments:
-                        roi = roi = investment.amount * (Decimal(investment.plan.roi) / Decimal("100"))
+                        roi = roi = investment.amount * (
+                            Decimal(investment.plan.roi) / Decimal("100")
+                        )
                         next_date = investment.next_roi_date + timedelta(hours=24)
 
                         try:
@@ -60,12 +62,14 @@ class Command(BaseCommand):
 
                     try:
                         account = Account.objects.get(user=user)
-                        account.Total_earnings = account.Total_earnings + accumulated_roi
+                        account.total_gain = account.total_gain + accumulated_roi
                         account.save()
                     except Exception as acc_exc:
-                        self.stdout.write(self.style.ERROR(
-                            f"Account update failed for {user.email}: {acc_exc}"
-                        ))
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f"Account update failed for {user.email}: {acc_exc}"
+                            )
+                        )
 
                     try:
                         for planName, planAmount in accumulated_roi_per_plan.items():
@@ -74,11 +78,13 @@ class Command(BaseCommand):
                                 amount=planAmount,
                                 type=planName.name.lower(),
                                 channel=planName.name.lower(),
-                                label=f'Return on {planName.name} shares',
-                                status='successful'
+                                label=f"Return on {planName.name} shares",
+                                status="successful",
                             )
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f'Error Creating transactions: {str(e)}'))
+                        self.stdout.write(
+                            self.style.ERROR(f"Error Creating transactions: {str(e)}")
+                        )
 
                     try:
                         plain_message = "Today's Return on Investment:\n"

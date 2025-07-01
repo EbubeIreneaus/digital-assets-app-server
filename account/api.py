@@ -78,7 +78,7 @@ def transfer(request, body: TransferBodyIn):
 def get_just_balance(request):
     userId = request.auth['user']['id']
     try:
-        account = Account.objects.get(id=userId)
+        account = Account.objects.get(user__id=userId)
         return {'success': True, 'balance': account.balance, 'available_balance': account.available_balance}
     except Exception as e:
         print(e)
