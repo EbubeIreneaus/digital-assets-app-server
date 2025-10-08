@@ -26,7 +26,7 @@ def transaction_signal_handling(instance):
                 bonus = amount * Decimal("0.05")
                 user_model = CustomUser.objects.get(id=user.id)
                 r_account = Account.objects.get(user=user_model.referred_by)
-                r_account.available_balance += bonus
+                r_account.balance += bonus
                 Transaction.objects.create(
                     user=user_model.referred_by,
                     amount=bonus,

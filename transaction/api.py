@@ -10,7 +10,7 @@ from administration.schema import ChannelSchemaOut
 from authentication.models import CustomUser
 from authentication.schema import ErrorOut
 from transaction.schema import ChannelResOut, DepositIn, ResOut, SingleTransactionOut, ToBalanceIn, TransactionFilterIn, TransactionOut, WithdrawalIn
-from transaction.views import sendDepositEmail
+from transaction.views import sendDepositEmail, sendWithdrawalEmail
 from .models import Transaction
 from django.core.mail import EmailMultiAlternatives
 from datetime import datetime
@@ -48,8 +48,8 @@ def withdrawal(request, body: WithdrawalIn):
         account = Account.objects.get(user__id=userId)
         if account.available_balance < data['amount']:
             return {'success': False, 'msg': 'Insufficient Balance'}
-        Transaction.objects.create(**data, type='withdraw', status='pending', user=account.user, label=f"withdraw to {data['channel']}")
-        # send email
+        t = Transaction.objects.create(**data, type='withdraw', status='pending', user=account.user, label=f"withdraw to {data['channel']}")
+        sendWithdrawalEmail(t.id)
         return {'success': True}
     except Exception as error:
         return {'success': False, 'msg': 'unknown server error'}
