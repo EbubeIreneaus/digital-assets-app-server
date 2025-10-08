@@ -29,4 +29,19 @@ class DashboardDataSchema(Schema):
     account: Accountschema
     liveChat: str
     transactions: List[TransactionSchema]
+
+
+class RefMeSchema(Schema):
+    referral_code: str
+
+class RefereeSchema(Schema):
+    id: int
+    fullname: str
+    has_first_deposit: bool
+
+class ReferralSchema(Schema):
+    success: bool
+    me: RefMeSchema
+    referee: List[RefereeSchema]
+    
     

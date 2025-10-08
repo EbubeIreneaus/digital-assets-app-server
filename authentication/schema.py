@@ -13,10 +13,14 @@ class Tier3Schema(ModelSchema):
         model = IdVerification
         fields = ['status']
 
-class UserIn(ModelSchema):
-    class Meta:
-        model = CustomUser
-        fields = ['fullname', 'email', 'type', 'password', 'country', 'phone']
+class UserIn(Schema):
+    fullname: str
+    email: str
+    type: str
+    password: str
+    country: str
+    phone: str
+    referred_by: Optional[str] = None
         
 class UserOut(ModelSchema):
     success: bool

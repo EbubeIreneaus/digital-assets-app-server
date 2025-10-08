@@ -46,6 +46,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     profile_pics = models.ImageField(upload_to='profile/', blank=True, null=True)
     tier = models.IntegerField(default=1)
     can_verify = models.BooleanField(default=False)
+    referral_code = models.CharField(max_length=60, blank=True, null=True)
+    referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
+    has_first_deposit = models.BooleanField(default=False)
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

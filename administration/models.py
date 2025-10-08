@@ -14,7 +14,7 @@ class CryptoChannel(models.Model):
 class InvestmentPlan(models.Model):
     name = models.CharField(max_length=30, unique=True)
     label = models.CharField(max_length=30, unique=True, blank=True, null=True)
-    roi = models.IntegerField()
+    roi = models.FloatField()
     icon= models.ImageField(upload_to='icon')
     
     def __str__(self):

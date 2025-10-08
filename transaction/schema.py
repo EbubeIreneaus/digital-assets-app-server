@@ -32,8 +32,11 @@ class DepositIn(Schema):
 class WithdrawalIn(Schema):
     amount: int
     channel: str
-    network: str
+    # network: str
     wallet_address: str
+
+class ToBalanceIn(Schema):
+    amount: int
 
 class TransactionSchema(ModelSchema):
     class Meta:

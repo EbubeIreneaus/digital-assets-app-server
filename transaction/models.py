@@ -14,7 +14,7 @@ class Transaction(models.Model):
         ('realestate', 'Real Estate'),
         ('stock', 'Stock'),
         ('crypto', 'Cryptocurrency'),
-        ('retirement', 'Retirement')
+        ('retirement', 'Retirement'),
     )
     
     STATUS_CHOICES = (

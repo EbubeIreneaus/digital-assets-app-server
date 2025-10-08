@@ -8,7 +8,7 @@ from account.models import Account
 from authentication.models import CustomUser
 from authentication.schema import ErrorOut
 from transaction.models import Transaction
-from .schema import DashboardDataSchema
+from .schema import DashboardDataSchema, ReferralSchema
 
 from extras.jwt import JwtVerify
 
@@ -48,3 +48,12 @@ def get_dashboard_data(request):
         return 200, {'success': True, 'account': account, 'user': user, 'transactions': transactions, 'liveChat': liveChat}
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}
+
+@api.get('/referral-data', response={200: ReferralSchema, 500:ErrorOut})
+def getReferral(request):
+    try:
+        user = request.auth['user']
+        people_referred = CustomUser.objects.filter(referred_by__id=user['id'], email_verified=True)
+        return 200, {"me": {"referral_code": user['referral_code']}, 'success': True, "referee": people_referred }
+    except Exception as e:
+        return 500, {'success': False, 'msg': str(e)}

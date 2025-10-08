@@ -1,4 +1,5 @@
 from typing import Literal, Optional
+from django.conf import settings
 from django.forms import model_to_dict
 from ninja import File, Form, Router, UploadedFile
 from django.db import transaction
@@ -8,10 +9,11 @@ from administration.models import CryptoChannel
 from administration.schema import ChannelSchemaOut
 from authentication.models import CustomUser
 from authentication.schema import ErrorOut
-from transaction.schema import ChannelResOut, DepositIn, ResOut, SingleTransactionOut, TransactionFilterIn, TransactionOut, WithdrawalIn
+from transaction.schema import ChannelResOut, DepositIn, ResOut, SingleTransactionOut, ToBalanceIn, TransactionFilterIn, TransactionOut, WithdrawalIn
 from transaction.views import sendDepositEmail
 from .models import Transaction
 from django.core.mail import EmailMultiAlternatives
+from datetime import datetime
 
 router = Router()
 
@@ -113,3 +115,65 @@ def get_one_transaction(request, id: int):
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}
 
+@router.post('/withdrawal/to-balance')
+def transfer_to_available_balance(request, body: ToBalanceIn):
+    user = request.auth['user']
+    data =  body.dict()
+    now= datetime.now()
+    try:
+        message =f"""
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Withdrawal Request</title>
+    <style>
+      body{{ font-family: Arial, sans-serif; color: #111; margin: 0; padding: 20px; }}
+      .container {{ max-width: 600px; margin: 0 auto; border: 1px solid #e6e6e6; padding: 20px; border-radius: 6px; }}
+      .header {{ font-size: 18px; font-weight: 600; margin-bottom: 10px; }}
+      .info {{ margin: 16px 0; }}
+      .buttons {{ margin-top: 20px; }}
+      .button {{ display: inline-block; padding: 10px 16px; text-decoration: none; border-radius: 4px; font-weight: 600; }}
+      .approve {{ background-color: #2d9cdb; color: #fff; }}
+      .reject {{ background-color: #f2f2f2; color: #333; border: 1px solid #ddd; }}
+      .meta {{ color: #666; font-size: 13px; margin-top: 18px; }}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">Withdrawal Request</div>
+
+      <div>Hello Admin,</div>
+
+      <div class="info">
+        <p><strong>User:</strong> {user['fullname']}</p>
+        <p><strong>Email:</strong>{user['email']}</p>
+        <p><strong>Requested amount:</strong> ${data['amount']:.2f}</p>
+      </div>
+
+      <div>
+        <p>Please update users balance and available balance respectively.</p>
+      </div>
+
+      <div class="meta">
+        <p>Requested on: {now.strftime("%B %d, %Y - %I:%M %p")}</p>
+      </div>
+
+      <div style="margin-top:18px; font-size:13px; color:#999;">
+        This is an automated message—do not reply to this email.
+      </div>
+    </div>
+  </body>
+</html>
+"""
+        mail = EmailMultiAlternatives()
+        mail.subject = 'Balance to Available Balance Request'
+        mail.attach_alternative(message, 'text/html')
+        mail.body = message
+        mail.to = ['service@digitalassetsweb.com']
+        
+        mail.send(fail_silently=False)
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'msg': str(e)}
+    
