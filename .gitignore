@@ -3,5 +3,6 @@ todo.txt
 
 venv/
 media/
+.venv/
 
 account.zip
