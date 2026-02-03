@@ -5,4 +5,5 @@ venv/
 media/
 .venv/
 
-account.zip
+deployment.zip
+.env

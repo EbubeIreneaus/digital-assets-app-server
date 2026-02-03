@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from account.models import Account
+from account.models import Account, Returns
 from authentication.models import CustomUser
 from investment.models import Investment
 from django.core.mail import send_mail
@@ -73,13 +73,11 @@ class Command(BaseCommand):
 
                     try:
                         for planName, planAmount in accumulated_roi_per_plan.items():
-                            Transaction.objects.create(
+                            Returns.objects.create(
                                 user=user,
                                 amount=planAmount,
-                                type=planName.name.lower(),
-                                channel=planName.name.lower(),
+                                plan=planName.name.lower(),
                                 label=f"Return on {planName.name} shares",
-                                status="successful",
                             )
                     except Exception as e:
                         self.stdout.write(
