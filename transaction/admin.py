@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Transaction
+from .models import Transaction, Swap
 
 # Register your models here.
 class TransactionAdmin(admin.ModelAdmin):
@@ -10,3 +10,12 @@ class TransactionAdmin(admin.ModelAdmin):
     
         
 admin.site.register(Transaction, TransactionAdmin)
+
+class SwapAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'source', 'destination', 'status')
+    search_fields = ('user__email', 'user__fullname', 'id')
+    list_filter = ('source', 'destination', 'status')
+    ordering = ('-createdAt',)
+    
+        
+admin.site.register(Swap, SwapAdmin)

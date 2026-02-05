@@ -11,7 +11,7 @@ from authentication.models import CustomUser
 from authentication.schema import ErrorOut
 from transaction.schema import ChannelResOut, DepositIn, ResOut, SingleTransactionOut, ToBalanceIn, TransactionFilterIn, TransactionOut, WithdrawalIn
 from transaction.views import sendDepositEmail, sendWithdrawalEmail
-from .models import Transaction
+from .models import Transaction, Swap
 from django.core.mail import EmailMultiAlternatives
 from datetime import datetime
 
@@ -115,11 +115,23 @@ def get_one_transaction(request, id: int):
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}
 
-@router.post('/withdrawal/to-balance')
+@router.post('/withdrawal/to-wallet')
 def transfer_to_available_balance(request, body: ToBalanceIn):
-    user = request.auth['user']
+    userid = request.auth['user']['id']
     data =  body.dict()
     now= datetime.now()
+    user = CustomUser.objects.get(id=userid)
+    account = Account.objects.get(user=user)
+    if data['source'] == data['destination']:
+        return {'success': False, 'msg': 'Source and Destination cannot be the same'}
+    elif data['source'] == 'balance':
+        if account.balance < data['amount']:
+            return {'success': False, 'msg': 'Insufficient Balance'}
+    elif data['source'] == 'available':
+        if account.available_balance < data['amount']:
+            return {'success': False, 'msg': 'Insufficient Balance'}
+    swap = Swap.objects.create(**data, user=user, status='pending')
+
     try:
         message =f"""
 <!doctype html>
@@ -146,9 +158,12 @@ def transfer_to_available_balance(request, body: ToBalanceIn):
       <div>Hello Admin,</div>
 
       <div class="info">
-        <p><strong>User:</strong> {user['fullname']}</p>
-        <p><strong>Email:</strong>{user['email']}</p>
+        <p><strong>Swap Ref:</strong> {swap.id}</p>
+        <p><strong>User:</strong> {user.fullname}</p>
+        <p><strong>Email:</strong>{user.email}</p>
         <p><strong>Requested amount:</strong> ${data['amount']:.2f}</p>
+        <p><strong>From:</strong> {data['source']}</p>
+        <p><strong>To:</strong> {data['destination']}</p>
       </div>
 
       <div>
@@ -167,10 +182,11 @@ def transfer_to_available_balance(request, body: ToBalanceIn):
 </html>
 """
         mail = EmailMultiAlternatives()
-        mail.subject = 'Balance to Available Balance Request'
+        mail.subject = 'Wallet Swapping Request'
         mail.attach_alternative(message, 'text/html')
         mail.body = message
         mail.to = ['service@digitalassetsweb.com']
+        mail.from_email = 'service@digitalassetsweb.com'
         
         mail.send(fail_silently=False)
         return {'success': True}

@@ -37,6 +37,8 @@ class WithdrawalIn(Schema):
 
 class ToBalanceIn(Schema):
     amount: int
+    source: str
+    destination: str
 
 class TransactionSchema(ModelSchema):
     class Meta:

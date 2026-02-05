@@ -51,3 +51,24 @@ def transaction_signal_handling(instance):
                     setattr(account, channel, current_channel_amount - amount)
                     sendDebitAlert(instance)
                     account.save()
+
+def swap_handling(instance):
+    source = instance.source
+    destination = instance.destination
+    amount = instance.amount
+    user = instance.user
+    account = Account.objects.get(user=user)
+
+    if instance.status == "successful":
+        if source == "balance" and destination == "available":
+            account.balance -= amount
+            account.available_balance += amount
+            account.save()
+        elif source == "available" and destination == "balance":
+            account.available_balance -= amount
+            account.balance += amount
+            account.save()
+    elif instance.status == "failed":
+        pass
+    
+    

@@ -22,6 +22,7 @@ from .schema import (
 
 router = Router()
 from functools import reduce
+from django.core.mail import send_mail
 
 
 @router.get("/trading-plan", response={200: TradingPlanOutSchema, 500: ErrorOut})
@@ -103,6 +104,28 @@ def buy_plan(request, body: BuyPlanIn):
         account.save()
         investment.save()
         transaction.save()
+
+        try:
+            # send email
+            subject = "Investment Plan Purchase"
+            message = f"""
+                New Investment Plan Purchase
+
+                {user.fullname} just purchased a {plan.label.upper()} plan
+                Amount: ${amount}
+                Date: {timezone.now()}
+                Ref: {transaction.id}
+
+                Kindly visit admin dashboard to update Investment status
+            """
+            send_mail(
+                subject = subject,
+                message = message,
+                from_email = settings.DEFAULT_FROM_EMAIL,
+                recipient_list = ['service@digitalassetsweb.com', 'alfredebube7@gmail.com']
+            )
+        except:
+            pass
         return 200, {"success": True}
     except Exception as error:
         return 500, {"success": False, "msg": "unkown server error"}
@@ -151,6 +174,29 @@ def sell_plan(request, body: SellPlanIn):
             status='successful'
         )
         transaction.save()
+
+        try:
+            # send email
+            subject = "Investment Plan Sale"
+            message = f"""
+                New Plan Sales Request
+
+                {user.fullname} just sold {amount} shares of {plan.label.upper()} plan
+
+                Date: {timezone.now()}
+                Ref: {transaction.id}
+
+                Kindly visit admin dashboard to update investment status
+            """
+            send_mail(
+                subject = subject,
+                message = message,
+                from_email = settings.DEFAULT_FROM_EMAIL,
+                recipient_list = ['service@digitalassetsweb.com', 'alfredebube7@gmail.com']
+            )
+        except:
+            pass
+
         return 200, {"success": True}
     except Exception as error:
         print(error)
@@ -221,6 +267,28 @@ def swap_plan(request, body: SwapPlanIn):
         dest_investment.save()
         source_transaction.save()
         dest_transaction.save()
+
+        try:
+            # send email
+            subject = "Investment Plan Swap"
+            message = f"""
+                New Investment Plan Swap
+
+                {user.fullname} just swapped a {source_plan.label.upper()} plan to {dest_plan.label.upper()} plan
+                Amount: ${amount}
+                Date: {timezone.now()}
+                Ref: {transaction.id}
+
+                Kindly visit admin dashboard to see investment status
+            """
+            send_mail(
+                subject = subject,
+                message = message,
+                from_email = settings.EMAIL_HOST_USER,
+                recipient_list = ['service@digitalassetsweb.com', 'alfredebube7@gmail.com']
+            )
+        except:
+            pass
 
         return 200, {"success": True}
     except Exception as error:

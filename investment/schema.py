@@ -17,7 +17,7 @@ class InvestPlanSchema(ModelSchema):
 class TransactionSchema(ModelSchema):
     class Meta:
         model = Transaction
-        fields = ['amount', 'label', 'createdAt', 'type','id']
+        fields = ['amount', 'label', 'createdAt', 'type','id', 'status']
         
 class AccountSchema(ModelSchema):
     class Meta:

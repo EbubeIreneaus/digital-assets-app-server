@@ -37,7 +37,7 @@ def get_transfer_reciever_email(request, email: str):
             "data": {
                 "fullname": user.fullname,
                 "email": user.email,
-                "image": user.profile_pics.url,
+                "image": user.profile_pics.url if user.profile_pics else None,
                 "available_balance": account.available_balance,
                 "balance": account.balance,
                 "active": user.is_active,
