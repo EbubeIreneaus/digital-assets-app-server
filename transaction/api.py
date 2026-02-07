@@ -34,21 +34,36 @@ def deposit(request, data: DepositIn):
         data = data.dict()
         channel = data['channel']
         user = CustomUser.objects.get(id=request.auth['user']['id'])
-        deposit = Transaction.objects.create(**data, type='deposit', user=user, label=f"deposited into account - {data['channel']}")
+        deposit = Transaction.objects.create(
+            **data, type='deposit', user=user, label=f"deposited into account - {data['channel']}")
         sendDepositEmail(deposit.pk)
         return 200, {'success': True, 'id': deposit.pk}
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}
-    
+
+
 @router.post('/withdrawal')
 def withdrawal(request, body: WithdrawalIn):
     try:
-        userId= request.auth['user']['id']
+        userId = request.auth['user']['id']
         data = body.dict()
+        user = CustomUser.objects.get(id=userId)
+
+        # Verify password if provided
+        if body.password:
+            if not user.check_password(body.password):
+                return {'success': False, 'msg': 'Invalid Password'}
+
         account = Account.objects.get(user__id=userId)
         if account.available_balance < data['amount']:
             return {'success': False, 'msg': 'Insufficient Balance'}
-        t = Transaction.objects.create(**data, type='withdraw', status='pending', user=account.user, label=f"withdraw to {data['channel']}")
+
+        # Remove password from data before creating transaction
+        if 'password' in data:
+            del data['password']
+
+        t = Transaction.objects.create(
+            **data, type='withdraw', status='pending', user=account.user, label=f"withdraw to {data['channel']}")
         sendWithdrawalEmail(t.id)
         return {'success': True}
     except Exception as error:
@@ -90,7 +105,7 @@ def pay_slip(
 
 
 @router.get('/all', response={200: TransactionOut, 500: ErrorOut})
-def get_all_transactions(request, status: Optional[str] = 'all', category:Optional[str]= 'all', offset: Optional[int]=0, limit: Optional[int]=100):
+def get_all_transactions(request, status: Optional[str] = 'all', category: Optional[str] = 'all', offset: Optional[int] = 0, limit: Optional[int] = 100):
     try:
         userId = request.auth['user']['id']
         query = Q(user__id=userId)
@@ -101,25 +116,28 @@ def get_all_transactions(request, status: Optional[str] = 'all', category:Option
         if status != 'all':
             query &= Q(status__iexact=status)
 
-        transactions = Transaction.objects.filter(query).order_by('-id')[offset : limit]
+        transactions = Transaction.objects.filter(
+            query).order_by('-id')[offset: limit]
         return 200, {'success': True, 'transactions': transactions}
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}
 
-@router.get('/one/{id}', response={200: SingleTransactionOut, 500: ErrorOut })
+
+@router.get('/one/{id}', response={200: SingleTransactionOut, 500: ErrorOut})
 def get_one_transaction(request, id: int):
     try:
         userId = request.auth['user']['id']
         transaction = Transaction.objects.get(id=id)
-        return 200,{'success': True, 'transaction':transaction}
+        return 200, {'success': True, 'transaction': transaction}
     except Exception as error:
         return 500, {'success': False, 'msg': str(error)}
+
 
 @router.post('/withdrawal/to-wallet')
 def transfer_to_available_balance(request, body: ToBalanceIn):
     userid = request.auth['user']['id']
-    data =  body.dict()
-    now= datetime.now()
+    data = body.dict()
+    now = datetime.now()
     user = CustomUser.objects.get(id=userid)
     account = Account.objects.get(user=user)
     if data['source'] == data['destination']:
@@ -133,7 +151,7 @@ def transfer_to_available_balance(request, body: ToBalanceIn):
     swap = Swap.objects.create(**data, user=user, status='pending')
 
     try:
-        message =f"""
+        message = f"""
 <!doctype html>
 <html>
   <head>
@@ -187,9 +205,8 @@ def transfer_to_available_balance(request, body: ToBalanceIn):
         mail.body = message
         mail.to = [settings.DEFAULT_FROM_EMAIL]
         mail.from_email = settings.DEFAULT_FROM_EMAIL
-        
+
         mail.send(fail_silently=False)
         return {'success': True}
     except Exception as e:
         return {'success': False, 'msg': str(e)}
-    
