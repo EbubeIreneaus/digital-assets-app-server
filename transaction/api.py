@@ -52,7 +52,7 @@ def withdrawal(request, body: WithdrawalIn):
         sendWithdrawalEmail(t.id)
         return {'success': True}
     except Exception as error:
-        return {'success': False, 'msg': 'unknown server error'}
+        return {'success': False, 'msg': str(error)}
 
 
 @router.post("/pay_slip", auth=None)
@@ -77,7 +77,7 @@ def pay_slip(
         email = EmailMultiAlternatives(
             subject="Payment Confirmation",
             body="Someone just sent a payment slip.",
-            to=["okigweebube7@gmail.com", "service@digitalassets.com.ng"]
+            to=[settings.DEFAULT_FROM_EMAIL]
         )
         email.attach_alternative(message, 'text/html')
         email.attach(file.name, file.read(), file.content_type)
@@ -185,8 +185,8 @@ def transfer_to_available_balance(request, body: ToBalanceIn):
         mail.subject = 'Wallet Swapping Request'
         mail.attach_alternative(message, 'text/html')
         mail.body = message
-        mail.to = ['service@digitalassetsweb.com']
-        mail.from_email = 'service@digitalassetsweb.com'
+        mail.to = [settings.DEFAULT_FROM_EMAIL]
+        mail.from_email = settings.DEFAULT_FROM_EMAIL
         
         mail.send(fail_silently=False)
         return {'success': True}
