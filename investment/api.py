@@ -1,3 +1,6 @@
+from django.core.mail import send_mail
+from django.conf import settings
+from functools import reduce
 from django.utils import timezone
 from datetime import timedelta
 from django.forms import model_to_dict
@@ -21,8 +24,6 @@ from .schema import (
 )
 
 router = Router()
-from functools import reduce
-from django.core.mail import send_mail
 
 
 @router.get("/trading-plan", response={200: TradingPlanOutSchema, 500: ErrorOut})
@@ -77,6 +78,12 @@ def buy_plan(request, body: BuyPlanIn):
         amount = float(data["amount"])
         userId = request.auth["user"]["id"]
         user = CustomUser.objects.get(id=userId)
+
+        # Verify password if provided
+        if body.password:
+            if not user.check_password(body.password):
+                return 400, {'success': False, 'msg': 'Invalid Password'}
+
         account = Account.objects.select_for_update().get(user__id=userId)
         account_dict = model_to_dict(account)
         plan = InvestmentPlan.objects.get(name__iexact=data["planName"])
@@ -119,10 +126,11 @@ def buy_plan(request, body: BuyPlanIn):
                 Kindly visit admin dashboard to update Investment status
             """
             send_mail(
-                subject = subject,
-                message = message,
-                from_email = settings.DEFAULT_FROM_EMAIL,
-                recipient_list = ['service@digitalassetsweb.com', 'alfredebube7@gmail.com']
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=['service@digitalassetsweb.com',
+                                'alfredebube7@gmail.com']
             )
         except:
             pass
@@ -141,6 +149,12 @@ def sell_plan(request, body: SellPlanIn):
         amount = data["amount"]
         to = data["to"]
         user = CustomUser.objects.get(id=userId)
+
+        # Verify password if provided
+        if body.password:
+            if not user.check_password(body.password):
+                return 400, {'success': False, 'msg': 'Invalid Password'}
+
         account = Account.objects.get(user__id=userId)
         investments = Investment.objects.filter(
             plan__name=plan.name, user__id=userId
@@ -189,10 +203,11 @@ def sell_plan(request, body: SellPlanIn):
                 Kindly visit admin dashboard to update investment status
             """
             send_mail(
-                subject = subject,
-                message = message,
-                from_email = settings.DEFAULT_FROM_EMAIL,
-                recipient_list = ['service@digitalassetsweb.com', 'alfredebube7@gmail.com']
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=['service@digitalassetsweb.com',
+                                'alfredebube7@gmail.com']
             )
         except:
             pass
@@ -200,7 +215,7 @@ def sell_plan(request, body: SellPlanIn):
         return 200, {"success": True}
     except Exception as error:
         print(error)
-        return 500, {"success": False, "msg": "unknown server error"}
+        return 500, {"success": False, "msg": f"unknown server error"}
 
 
 @router.post("/swap-plan", response={200: ResOut, 400: ErrorOut, 500: ErrorOut})
@@ -213,6 +228,12 @@ def swap_plan(request, body: SwapPlanIn):
         destination = data["destination"]
         amount = data["amount"]
         user = CustomUser.objects.get(id=userId)
+
+        # Verify password if provided
+        if body.password:
+            if not user.check_password(body.password):
+                return 400, {'success': False, 'msg': 'Invalid Password'}
+
         source_plan = InvestmentPlan.objects.get(name=source)
         dest_plan = InvestmentPlan.objects.get(name=destination)
         source_investments = Investment.objects.filter(
@@ -282,10 +303,11 @@ def swap_plan(request, body: SwapPlanIn):
                 Kindly visit admin dashboard to see investment status
             """
             send_mail(
-                subject = subject,
-                message = message,
-                from_email = settings.EMAIL_HOST_USER,
-                recipient_list = ['service@digitalassetsweb.com', 'alfredebube7@gmail.com']
+                subject=subject,
+                message=message,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['service@digitalassetsweb.com',
+                                'alfredebube7@gmail.com']
             )
         except:
             pass
@@ -293,4 +315,4 @@ def swap_plan(request, body: SwapPlanIn):
         return 200, {"success": True}
     except Exception as error:
         print(error)
-        return 500, {"success": False, "msg": "unknown server error"}
+        return 500, {"success": False, "msg": str(error)}

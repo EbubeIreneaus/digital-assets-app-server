@@ -46,6 +46,7 @@ class ToBalanceIn(Schema):
     amount: int
     source: str
     destination: str
+    password: Optional[str] = None
 
 
 class TransactionSchema(ModelSchema):

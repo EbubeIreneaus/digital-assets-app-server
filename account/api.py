@@ -56,6 +56,13 @@ def transfer(request, body: TransferBodyIn):
     try:
         userId = request.auth["user"]["id"]
         data = body.dict()
+        user = CustomUser.objects.get(id=userId)
+
+        # Verify password if provided
+        if body.password:
+            if not user.check_password(body.password):
+                return {"success": False, "msg": "Invalid Password"}
+
         transfer_account = Account.objects.get(user__id=userId)
         reciever_account = Account.objects.get(user__email__iexact=data["to"])
         tr_acct_dict = model_to_dict(transfer_account)

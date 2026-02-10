@@ -139,6 +139,12 @@ def transfer_to_available_balance(request, body: ToBalanceIn):
     data = body.dict()
     now = datetime.now()
     user = CustomUser.objects.get(id=userid)
+
+    # Verify password if provided
+    if body.password:
+        if not user.check_password(body.password):
+            return {'success': False, 'msg': 'Invalid Password'}
+        del data['password']
     account = Account.objects.get(user=user)
     if data['source'] == data['destination']:
         return {'success': False, 'msg': 'Source and Destination cannot be the same'}
