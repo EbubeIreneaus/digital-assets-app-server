@@ -64,7 +64,6 @@ def confirm_transaction_signal(sender, instance, created, **kwargs):
         pass
 
     elif instance.status == 'successful' and (instance.type == 'deposit' or instance.type == 'withdraw'):
-        
         transaction_signal_handling(instance)
 
 @receiver(post_save, sender=Swap)

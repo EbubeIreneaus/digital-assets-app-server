@@ -7,14 +7,14 @@ logger = logging.getLogger(__name__)
 
 
 def transaction_signal_handling(instance):
-    type = instance.type
+    _type = instance.type
     user = instance.user
     amount = instance.amount
     status = instance.status
     channel = instance.channel
     account = Account.objects.get(user=user)
 
-    if type == "deposit" and status == "successful":
+    if _type == "deposit" and status == "successful":
         from .views import sendCreditAlert
         from transaction.models import Transaction
 
@@ -41,16 +41,16 @@ def transaction_signal_handling(instance):
         except Exception as error:
             logger.exception("Referral bonus processing failed")
 
-    elif type == "withdraw" and status == "successful":
+    elif _type == "withdraw" and status == "successful":
+        print({"Reached here"})
         from .views import sendDebitAlert
-
-        if hasattr(account, channel):
-            current_channel_amount = getattr(account, channel)
-            if isinstance(current_channel_amount, (float, int, Decimal)):
-                if current_channel_amount >= amount:
-                    setattr(account, channel, current_channel_amount - amount)
-                    sendDebitAlert(instance)
-                    account.save()
+        try:
+            account.available_balance -= amount
+            account.save()
+            sendDebitAlert(instance)
+        except Exception as error:
+            print(error)
+            logger.exception("Withdrawal processing failed")
 
 def swap_handling(instance):
     source = instance.source
